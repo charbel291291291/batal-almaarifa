@@ -15,7 +15,7 @@ const TIME_BY_TYPE: Record<string, number> = {
 };
 
 export function newQuestionId(): string {
-  return `cus-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  return `cus-${crypto.randomUUID()}`;
 }
 
 /** يبني سؤالاً مكتملاً من مدخلات جزئية مع افتراضات آمنة */

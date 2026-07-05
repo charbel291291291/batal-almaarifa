@@ -58,7 +58,7 @@ function A11yPanel() {
 }
 
 export function Home() {
-  const { goSetup, goSolo, goEditor, goStats } = useGameStore();
+  const { goSetup, goSolo, goOnline, goStats } = useGameStore();
   const [showA11y, setShowA11y] = useState(false);
 
   return (
@@ -107,14 +107,11 @@ export function Home() {
         <button type="button" className="btn-ghost text-lg" onClick={goSolo}>
           ⚡ تدريب فردي — سباق الـ 60 ثانية
         </button>
-        <button type="button" className="btn-ghost text-lg" onClick={goEditor}>
-          ✍️ صانع الأسئلة
+        <button type="button" className="btn-ghost text-lg" onClick={goOnline}>
+          🌐 تحدّي أونلاين
         </button>
         <button type="button" className="btn-ghost text-lg" onClick={goStats}>
           📊 الإحصاءات
-        </button>
-        <button type="button" className="btn-ghost text-lg opacity-60" disabled title="قريباً">
-          🌐 غرف أونلاين — قريباً
         </button>
       </motion.nav>
 

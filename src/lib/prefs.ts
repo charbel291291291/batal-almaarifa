@@ -1,7 +1,7 @@
 /**
  * الحفظ المحلي — تفضيلات الوصولية، آخر إعدادات، إحصاءات الجهاز، حزمة الأسئلة المخصصة.
  */
-import type { GameSettings, GameState, Question } from '../types';
+import type { GameSettings, GameState } from '../types';
 import { rankPlayers } from './scoreEngine';
 
 function read<T>(key: string, fallback: T): T {
@@ -58,18 +58,6 @@ export function loadLastSettings(): GameSettings | null {
 
 export function saveLastSettings(settings: GameSettings): void {
   write(SETTINGS_KEY, settings);
-}
-
-/* ---------- حزمة الأسئلة المخصصة (صانع الأسئلة) ---------- */
-
-const CUSTOM_PACK_KEY = 'bm_custom_pack';
-
-export function loadCustomPack(): Question[] {
-  return read<Question[]>(CUSTOM_PACK_KEY, []);
-}
-
-export function saveCustomPack(questions: Question[]): void {
-  write(CUSTOM_PACK_KEY, questions);
 }
 
 /* ---------- إحصاءات الجهاز ---------- */

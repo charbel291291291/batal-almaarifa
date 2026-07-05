@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import type { CategoryId, Difficulty, GameSettings, HostTone } from '../types';
 import { ALL_CATEGORIES, CATEGORY_LABELS, DIFFICULTY_LABELS } from '../types';
-import { loadCustomPack, loadLastSettings } from '../lib/prefs';
+import { loadLastSettings } from '../lib/prefs';
 
 const AVATARS = ['🦁', '🦅', '🐺', '🦊', '🐯', '🦉', '🐬', '🦄', '🐲', '🦜'];
 const ALL_DIFFICULTIES = Object.keys(DIFFICULTY_LABELS) as Difficulty[];
@@ -16,7 +16,6 @@ interface PlayerDraft {
 export function Setup() {
   const { goHome, startGame } = useGameStore();
   const last = useMemo(loadLastSettings, []);
-  const customCount = useMemo(() => loadCustomPack().length, []);
 
   const [players, setPlayers] = useState<PlayerDraft[]>(
     last?.players?.length
@@ -34,7 +33,6 @@ export function Setup() {
   const [timerSpeed, setTimerSpeed] = useState(last?.timerSpeed ?? 1);
   const [answerMode, setAnswerMode] = useState<'auto' | 'options'>(last?.answerMode ?? 'auto');
   const [tone, setTone] = useState<HostTone>(last?.tone ?? 'lebanese');
-  const [includeCustom, setIncludeCustom] = useState(last?.includeCustom ?? false);
 
   const toggleCategory = (c: CategoryId) =>
     setCategories((prev) =>
@@ -60,10 +58,9 @@ export function Setup() {
       timerSpeed,
       answerMode,
       tone,
-      includeCustom: includeCustom && customCount > 0,
       soundOn: true,
     };
-    startGame(settings);
+    void startGame(settings);
   };
 
   return (
@@ -170,17 +167,6 @@ export function Setup() {
               </button>
             ))}
           </div>
-          {customCount > 0 && (
-            <label className="mt-4 flex items-center gap-2 text-sm font-bold">
-              <input
-                type="checkbox"
-                className="size-5 accent-[#e8b84b]"
-                checked={includeCustom}
-                onChange={(e) => setIncludeCustom(e.target.checked)}
-              />
-              تضمين أسئلتي من صانع الأسئلة ({customCount})
-            </label>
-          )}
         </section>
 
         {/* الصعوبة والإيقاع */}

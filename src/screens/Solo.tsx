@@ -33,6 +33,8 @@ export function Solo() {
   const [isNewBest, setIsNewBest] = useState(false);
   const runId = useRef(0);
   const bestSaved = useRef(false);
+  const scoreRef = useRef(0);
+  const finishedRef = useRef(false);
 
   const start = () => {
     const picked = pickQuestions(QUESTION_BANK, {
@@ -44,6 +46,8 @@ export function Solo() {
     });
     runId.current += 1;
     bestSaved.current = false;
+    finishedRef.current = false;
+    scoreRef.current = 0;
     setQuestions(picked);
     setIndex(0);
     setScore(0);
@@ -55,10 +59,12 @@ export function Solo() {
     sounds.roundStart();
   };
 
-  const finish = (finalScore: number) => {
+  const finish = () => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
     if (!bestSaved.current) {
       bestSaved.current = true;
-      setIsNewBest(saveSoloBest(finalScore));
+      setIsNewBest(saveSoloBest(scoreRef.current));
     }
     setStage('done');
   };
@@ -66,10 +72,11 @@ export function Solo() {
   const question = questions[index];
 
   const answer = (value: string, elapsedMs: number) => {
-    if (!question) return;
+    if (!question || finishedRef.current) return;
     const ok = isAnswerCorrect(value, question.answer, question.accepted_answers);
-    const newScore = ok ? score + 10 + (elapsedMs <= 3000 ? 5 : 0) : score;
+    const newScore = ok ? scoreRef.current + 10 + (elapsedMs <= 3000 ? 5 : 0) : scoreRef.current;
     if (ok) {
+      scoreRef.current = newScore;
       setScore(newScore);
       setCorrect((c) => c + 1);
       sounds.correct();
@@ -82,7 +89,7 @@ export function Solo() {
     setTimeout(() => {
       setFlash(null);
       setIndex((i) => (i + 1 < questions.length ? i + 1 : i));
-      if (index + 1 >= questions.length) finish(newScore);
+      if (index + 1 >= questions.length) finish();
     }, 450);
   };
 
@@ -139,7 +146,7 @@ export function Solo() {
               duration={SPRINT_SECONDS}
               resetKey={runId.current}
               running
-              onTimeout={() => finish(score)}
+              onTimeout={finish}
             />
             <div className="glass px-4 py-2 text-center">
               <p className="text-xs text-ink-dim">صح / خطأ</p>

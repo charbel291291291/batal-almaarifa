@@ -4,10 +4,8 @@
 import { create } from 'zustand';
 import type { GameAction, GameSettings, GameState, Question } from '../types';
 import { createGame, reduce } from '../engine/gameEngine';
-import { QUESTION_BANK } from '../data/questions';
 import {
   applyPrefs,
-  loadCustomPack,
   loadPrefs,
   recordGameFinished,
   saveLastSettings,
@@ -15,34 +13,33 @@ import {
   type A11yPrefs,
 } from '../lib/prefs';
 
-export type Screen = 'home' | 'setup' | 'game' | 'solo' | 'editor' | 'stats';
+export type Screen = 'home' | 'setup' | 'game' | 'solo' | 'online' | 'stats';
 
 interface AppStore {
   screen: Screen;
   game: GameState | null;
-  /** بنك اللعبة الجارية (الأساسي + المخصص إن فُعّل) */
   bank: Question[];
   prefs: A11yPrefs;
   goHome: () => void;
   goSetup: () => void;
   goSolo: () => void;
-  goEditor: () => void;
+  goOnline: () => void;
   goStats: () => void;
   setPrefs: (prefs: A11yPrefs) => void;
-  startGame: (settings: GameSettings) => void;
+  startGame: (settings: GameSettings) => Promise<void>;
   dispatch: (action: GameAction) => void;
 }
 
 export const useGameStore = create<AppStore>((set, get) => ({
   screen: 'home',
   game: null,
-  bank: QUESTION_BANK,
+  bank: [],
   prefs: loadPrefs(),
 
   goHome: () => set({ screen: 'home', game: null }),
   goSetup: () => set({ screen: 'setup' }),
   goSolo: () => set({ screen: 'solo' }),
-  goEditor: () => set({ screen: 'editor' }),
+  goOnline: () => set({ screen: 'online' }),
   goStats: () => set({ screen: 'stats' }),
 
   setPrefs: (prefs) => {
@@ -50,12 +47,10 @@ export const useGameStore = create<AppStore>((set, get) => ({
     set({ prefs });
   },
 
-  startGame: (settings) => {
+  startGame: async (settings) => {
     saveLastSettings(settings);
-    const bank = settings.includeCustom
-      ? [...QUESTION_BANK, ...loadCustomPack()]
-      : QUESTION_BANK;
-    set({ screen: 'game', game: createGame(settings), bank });
+    const { QUESTION_BANK } = await import('../data/questions');
+    set({ screen: 'game', game: createGame(settings), bank: QUESTION_BANK });
   },
 
   dispatch: (action) => {

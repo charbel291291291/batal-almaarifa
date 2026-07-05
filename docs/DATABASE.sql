@@ -153,15 +153,32 @@ create table question_reports (
 
 -- ============ RLS (أمثلة أساسية) ============
 alter table profiles enable row level security;
+alter table question_packs enable row level security;
 alter table questions enable row level security;
 alter table game_rooms enable row level security;
+alter table room_players enable row level security;
+alter table game_sessions enable row level security;
+alter table round_sessions enable row level security;
+alter table buzzer_events enable row level security;
+alter table answer_submissions enable row level security;
+alter table score_events enable row level security;
+alter table player_stats enable row level security;
+alter table question_reports enable row level security;
 
 create policy "read approved questions" on questions
   for select using (review_status = 'approved' or created_by = auth.uid());
 create policy "own profile" on profiles
   for all using (id = auth.uid());
+create policy "read public question packs" on question_packs
+  for select using (is_public or owner_id = auth.uid());
+create policy "manage own question packs" on question_packs
+  for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+create policy "create question reports" on question_reports
+  for insert with check (reporter_id = auth.uid());
 -- ملاحظة: الإجابة الصحيحة تُقدَّم عبر دالة/عرض خادمي فقط أثناء اللعب،
 -- ولا يُسمح للعميل بقراءة عمودي answer/accepted_answers في غرفة نشطة.
+-- بقية جداول اللعب بلا سياسات عميل عمداً: الوصول إليها يكون عبر دوال
+-- SECURITY DEFINER مدققة أو خدمة الخادم فقط، وسياسة RLS الافتراضية تمنع الوصول المباشر.
 
 -- ============ أحداث Realtime (قنوات Supabase) ============
 -- room:{code} → player_joined, player_ready, game_started,

@@ -372,7 +372,8 @@ function reduceR2(
       };
     }
     if (action.type === 'BUZZ') {
-      if (phase.lockedOut.includes(action.playerId)) return state;
+      const player = state.players.find((candidate) => candidate.id === action.playerId);
+      if (!player || player.eliminated || phase.lockedOut.includes(action.playerId)) return state;
       return { ...state, phase: { ...phase, stage: 'answering', buzzedPlayerId: action.playerId } };
     }
     if (action.type === 'TIMEOUT') {
