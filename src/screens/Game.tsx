@@ -13,10 +13,13 @@ import { Round4 } from './rounds/Round4';
 import { Round5 } from './rounds/Round5';
 import { Results } from './rounds/Results';
 import { Champion } from './Champion';
+import { roundLabel } from '../lib/i18n';
+import { useI18n } from '../lib/useI18n';
 
 /** شاشة اللعب الرئيسية — توزّع العرض بحسب مرحلة المحرك */
 export function Game() {
   const { game, goHome } = useGameStore();
+  const { locale, t } = useI18n();
   const [confirmExit, setConfirmExit] = useState(false);
   if (!game) return null;
 
@@ -43,10 +46,10 @@ export function Game() {
     <main className="relative z-10 mx-auto flex min-h-svh w-full max-w-3xl flex-col gap-4 px-4 py-5">
       {confirmExit && (
         <ConfirmModal
-          title="إنهاء اللعبة؟"
-          message="ستخسرون تقدم هذه المسابقة وتعودون إلى الشاشة الرئيسية."
-          confirmLabel="نعم، إنهاء"
-          cancelLabel="متابعة اللعب"
+          title={t('endGameTitle')}
+          message={t('endGameMessage')}
+          confirmLabel={t('confirmEnd')}
+          cancelLabel={t('keepPlaying')}
           onConfirm={goHome}
           onCancel={() => setConfirmExit(false)}
         />
@@ -58,10 +61,10 @@ export function Game() {
           className="btn-ghost !min-h-11 !px-3 !py-2 text-sm"
           onClick={() => setConfirmExit(true)}
         >
-          ✕ إنهاء
+          {t('endGame')}
         </button>
         {roundMeta && (
-          <h1 className="text-lg font-black text-gold-2 sm:text-xl">🎬 {roundMeta.title}</h1>
+          <h1 className="text-lg font-black text-gold-2 sm:text-xl">🎬 {roundLabel(roundMeta.id, locale)}</h1>
         )}
         <MuteButton />
       </header>

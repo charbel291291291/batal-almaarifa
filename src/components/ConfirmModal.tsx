@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useI18n } from '../lib/useI18n';
 
 interface Props {
   title: string;
@@ -14,10 +15,11 @@ export function ConfirmModal({
   title,
   message,
   confirmLabel,
-  cancelLabel = 'إلغاء',
+  cancelLabel,
   onConfirm,
   onCancel,
 }: Props) {
+  const { t } = useI18n();
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-5 backdrop-blur-sm"
@@ -36,7 +38,7 @@ export function ConfirmModal({
         {message && <p className="mb-4 text-ink-dim">{message}</p>}
         <div className="mt-2 flex gap-3">
           <button type="button" className="btn-ghost flex-1" onClick={onCancel} autoFocus>
-            {cancelLabel}
+            {cancelLabel ?? t('cancel')}
           </button>
           <button type="button" className="btn-primary flex-1 !bg-none !bg-danger !text-white" onClick={onConfirm}>
             {confirmLabel}

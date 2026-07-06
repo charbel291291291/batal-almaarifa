@@ -81,7 +81,7 @@ export interface Question {
   media_url?: string;
   time_limit_seconds: number;
   points: number;
-  language: 'ar';
+  language: 'ar' | 'en' | 'fr';
   tags: string[];
   created_by?: string;
   review_status?: 'approved' | 'pending' | 'rejected';

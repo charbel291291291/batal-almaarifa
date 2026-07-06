@@ -50,7 +50,9 @@ export const useGameStore = create<AppStore>((set, get) => ({
   startGame: async (settings) => {
     saveLastSettings(settings);
     const { QUESTION_BANK } = await import('../data/questions');
-    set({ screen: 'game', game: createGame(settings), bank: QUESTION_BANK });
+    const { localizeQuestionBank } = await import('../lib/localizeQuestions');
+    const bank = localizeQuestionBank(QUESTION_BANK, get().prefs.locale);
+    set({ screen: 'game', game: createGame(settings), bank });
   },
 
   dispatch: (action) => {

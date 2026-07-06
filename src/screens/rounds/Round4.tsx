@@ -8,11 +8,13 @@ import { TimerRing } from '../../components/TimerRing';
 import { FeedbackCard } from './FeedbackCard';
 import { sounds } from '../../lib/soundEngine';
 import { SCORING } from '../../lib/scoreEngine';
+import { useI18n } from '../../lib/useI18n';
 
 type R4Phase = Extract<Phase, { kind: 'r4' }>;
 
 /** الجولة 4: المواجهة — مبارزة إقصاء بين أدنى لاعبَين */
 export function Round4({ phase }: { phase: R4Phase }) {
+  const { locale, t } = useI18n();
   const { game, dispatch } = useGameStore();
   const question = phase.questions[phase.index];
 
@@ -43,27 +45,27 @@ export function Round4({ phase }: { phase: R4Phase }) {
         animate={{ opacity: 1, y: 0 }}
         className="mx-auto flex w-full max-w-lg flex-col items-center gap-6 text-center"
       >
-        <span className="chip" data-active="true">مواجهة فاصلة ⚔️</span>
+        <span className="chip" data-active="true">{t('showdown')}</span>
         <div className="flex w-full items-center justify-center gap-4">
           <div className="glass flex flex-1 flex-col items-center gap-2 p-5">
             <span className="text-5xl" aria-hidden>{pa.avatar}</span>
             <span className="text-xl font-black">{pa.name}</span>
-            <span className="text-sm text-ink-dim">{pa.score} نقطة</span>
+            <span className="text-sm text-ink-dim">{t('pointUnit', { count: pa.score })}</span>
           </div>
           <span className="text-3xl font-black text-danger" aria-hidden>VS</span>
           <div className="glass flex flex-1 flex-col items-center gap-2 p-5">
             <span className="text-5xl" aria-hidden>{pb.avatar}</span>
             <span className="text-xl font-black">{pb.name}</span>
-            <span className="text-sm text-ink-dim">{pb.score} نقطة</span>
+            <span className="text-sm text-ink-dim">{t('pointUnit', { count: pb.score })}</span>
           </div>
         </div>
         <p className="text-ink-dim">
-          {SCORING.r4.duelQuestions} أسئلة... أسرع إجابة صحيحة تأخذ النقطة.
+          {t('duelHelp', { count: SCORING.r4.duelQuestions })}
           <br />
-          <b className="text-danger">الخاسر يغادر المنافسة!</b>
+          <b className="text-danger">{t('loserLeaves')}</b>
         </p>
         <button type="button" className="btn-primary w-full max-w-xs text-xl" onClick={() => dispatch({ type: 'ADVANCE' })}>
-          ⚔️ لتبدأ المواجهة!
+          {t('startShowdown')}
         </button>
       </motion.section>
     );
@@ -87,16 +89,16 @@ export function Round4({ phase }: { phase: R4Phase }) {
         className="mx-auto flex w-full max-w-lg flex-col items-center gap-5 text-center"
       >
         <span className="text-6xl" aria-hidden>🚪</span>
-        <h2 className="text-2xl font-black">{phase.duelSummary}</h2>
+        <h2 className="text-2xl font-black">{locale === 'ar' ? phase.duelSummary : t('duelComplete')}</h2>
         {eliminated && (
           <div className="glass flex items-center gap-3 px-6 py-3 opacity-60">
             <span className="text-3xl" aria-hidden>{eliminated.avatar}</span>
             <span className="text-lg font-bold line-through">{eliminated.name}</span>
-            <span className="chip !min-h-0 !py-1 text-xs text-danger">مُقصى</span>
+            <span className="chip !min-h-0 !py-1 text-xs text-danger">{t('eliminated')}</span>
           </div>
         )}
         <button type="button" className="btn-primary w-full max-w-xs text-xl" onClick={() => dispatch({ type: 'ADVANCE' })}>
-          {game.players.filter((p) => !p.eliminated).length > 2 ? '⚔️ المواجهة التالية' : '📊 النتائج'}
+          {game.players.filter((p) => !p.eliminated).length > 2 ? t('nextShowdown') : t('results')}
         </button>
       </motion.section>
     );
@@ -137,7 +139,7 @@ export function Round4({ phase }: { phase: R4Phase }) {
               className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-gold/50 bg-gold/10 px-4 py-2"
             >
               <span className="text-2xl" aria-hidden>{buzzer.avatar}</span>
-              <span className="text-lg font-black text-gold-2">{buzzer.name} يسبق! 🔔 أجب الآن</span>
+              <span className="text-lg font-black text-gold-2">{t('fastestBuzz', { name: buzzer.name })}</span>
             </motion.div>
             <AnswerPanel
               key={`${question.id}-${buzzer.id}`}
@@ -150,7 +152,7 @@ export function Round4({ phase }: { phase: R4Phase }) {
       </QuestionCard>
 
       {phase.stage === 'buzz' && (
-        <div className="grid grid-cols-2 gap-3" role="group" aria-label="أجراس المتواجهين">
+        <div className="grid grid-cols-2 gap-3" role="group" aria-label={t('duelBuzzers')}>
           {[pa, pb].map((p) => {
             const locked = phase.lockedOut.includes(p.id);
             return (
@@ -163,11 +165,11 @@ export function Round4({ phase }: { phase: R4Phase }) {
                   sounds.buzz();
                   dispatch({ type: 'BUZZ', playerId: p.id });
                 }}
-                aria-label={`جرس ${p.name}${locked ? ' — مقفل' : ''}`}
+                aria-label={`${t('buzzer', { key: p.name })}${locked ? t('buzzerLocked') : ''}`}
               >
                 <span className="text-3xl" aria-hidden>{locked ? '🔒' : p.avatar}</span>
                 <span>{p.name}</span>
-                <span className="text-xs text-ink-dim">مفتاح {p.buzzKey}</span>
+                <span className="text-xs text-ink-dim">{t('keyLabel', { key: p.buzzKey })}</span>
               </button>
             );
           })}
@@ -188,11 +190,12 @@ function DuelScore({
   wins: Record<string, number>;
   suddenDeath: boolean;
 }) {
+  const { t } = useI18n();
   return (
-    <div className="glass flex items-center gap-3 px-4 py-2" aria-label="نتيجة المواجهة">
+    <div className="glass flex items-center gap-3 px-4 py-2" aria-label={t('duelScore')}>
       <span aria-hidden>{pa.avatar}</span>
       <span className="text-xl font-black tabular-nums text-gold-2">{wins[pa.id]}</span>
-      <span className="text-sm text-danger font-black">{suddenDeath ? '⚡ موت مفاجئ' : 'VS'}</span>
+      <span className="text-sm text-danger font-black">{suddenDeath ? t('suddenDeath') : 'VS'}</span>
       <span className="text-xl font-black tabular-nums text-gold-2">{wins[pb.id]}</span>
       <span aria-hidden>{pb.avatar}</span>
     </div>

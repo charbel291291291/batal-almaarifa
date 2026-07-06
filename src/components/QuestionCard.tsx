@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { Question } from '../types';
-import { CATEGORY_LABELS, DIFFICULTY_LABELS } from '../types';
+import { categoryLabel, difficultyLabel } from '../lib/i18n';
+import { useI18n } from '../lib/useI18n';
 
 const CLUE_REVEAL_MS = 5000;
 
@@ -14,6 +15,7 @@ interface Props {
 
 /** تلميحات متتالية — تلميح جديد كل 5 ثوانٍ */
 function CluesList({ question }: { question: Question }) {
+  const { t } = useI18n();
   const clues = question.clues ?? [];
   const [shown, setShown] = useState(1);
 
@@ -38,13 +40,14 @@ function CluesList({ question }: { question: Question }) {
         </motion.li>
       ))}
       {shown < clues.length && (
-        <li className="text-sm text-ink-dim">تلميح إضافي بعد قليل...</li>
+        <li className="text-sm text-ink-dim">{t('moreClueSoon')}</li>
       )}
     </ul>
   );
 }
 
 export function QuestionCard({ question, visibleWords, children }: Props) {
+  const { locale, t } = useI18n();
   const words = question.question_text.split(/\s+/);
   const shown = visibleWords === undefined ? words : words.slice(0, visibleWords);
   const hiddenCount = words.length - shown.length;
@@ -59,16 +62,16 @@ export function QuestionCard({ question, visibleWords, children }: Props) {
     >
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <span className="chip !min-h-0 !py-1" data-active="true">
-          {CATEGORY_LABELS[question.category]}
+          {categoryLabel(question.category, locale)}
         </span>
-        <span className="chip !min-h-0 !py-1">{DIFFICULTY_LABELS[question.difficulty]}</span>
-        {question.type === 'clues' && <span className="chip !min-h-0 !py-1">🔎 تلميحات</span>}
+        <span className="chip !min-h-0 !py-1">{difficultyLabel(question.difficulty, locale)}</span>
+        {question.type === 'clues' && <span className="chip !min-h-0 !py-1">{t('clues')}</span>}
       </div>
 
       <p className="min-h-16 text-2xl leading-relaxed font-bold sm:text-3xl" dir="rtl">
         {shown.join(' ')}
         {hiddenCount > 0 && (
-          <span className="text-ink-dim" aria-label={`${hiddenCount} كلمات لم تُكشف بعد`}>
+          <span className="text-ink-dim" aria-label={t('hiddenWords', { count: hiddenCount })}>
             {' '}
             {Array.from({ length: Math.min(hiddenCount, 6) }, () => '•••').join(' ')}
           </span>
@@ -80,12 +83,12 @@ export function QuestionCard({ question, visibleWords, children }: Props) {
       {question.type === 'image' && question.media_url && (
         <img
           src={question.media_url}
-          alt="صورة السؤال"
+          alt={t('questionImage')}
           className="mx-auto mt-4 max-h-64 rounded-xl object-contain"
         />
       )}
       {question.type === 'audio' && question.media_url && (
-        <audio controls src={question.media_url} className="mx-auto mt-4 w-full" aria-label="مقطع السؤال الصوتي" />
+        <audio controls src={question.media_url} className="mx-auto mt-4 w-full" aria-label={t('questionAudio')} />
       )}
 
       {children}

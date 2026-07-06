@@ -1,5 +1,6 @@
 import type { PlayerState } from '../types';
 import { rankPlayers } from '../lib/scoreEngine';
+import { useI18n } from '../lib/useI18n';
 
 interface Props {
   players: PlayerState[];
@@ -11,13 +12,14 @@ const MEDALS = ['🥇', '🥈', '🥉'];
 
 /** لوحة النتائج — منصّة تتويج مصغّرة، الذهب للمتصدر، والمُقصَون بشارة رمادية */
 export function Scoreboard({ players, activePlayerId, compact = false }: Props) {
+  const { t } = useI18n();
   const alive = rankPlayers(players.filter((p) => !p.eliminated));
   const eliminated = rankPlayers(players.filter((p) => p.eliminated));
   const ranked = [...alive, ...eliminated];
 
   if (compact) {
     return (
-      <div className="flex flex-wrap justify-center gap-2" aria-label="لوحة النتائج">
+      <div className="flex flex-wrap justify-center gap-2" aria-label={t('scoreboard')}>
         {ranked.map((p, i) => (
           <div
             key={p.id}
@@ -28,7 +30,7 @@ export function Scoreboard({ players, activePlayerId, compact = false }: Props) 
             <span aria-hidden>{p.avatar}</span>
             <span className="font-bold">{p.name}</span>
             {p.eliminated ? (
-              <span className="text-xs text-danger">مُقصى</span>
+              <span className="text-xs text-danger">{t('eliminated')}</span>
             ) : (
               <span className={`font-black tabular-nums ${i === 0 ? 'text-gold-2' : 'text-ink-dim'}`}>
                 {p.score}
@@ -41,7 +43,7 @@ export function Scoreboard({ players, activePlayerId, compact = false }: Props) 
   }
 
   return (
-    <ol className="flex w-full flex-col gap-2" aria-label="لوحة النتائج">
+    <ol className="flex w-full flex-col gap-2" aria-label={t('scoreboard')}>
       {ranked.map((p, i) => (
         <li
           key={p.id}
@@ -56,9 +58,9 @@ export function Scoreboard({ players, activePlayerId, compact = false }: Props) 
           </span>
           <span className="text-2xl" aria-hidden>{p.avatar}</span>
           <span className="flex-1 truncate text-lg font-bold">{p.name}</span>
-          {p.eliminated && <span className="chip !min-h-0 !py-1 text-xs text-danger">مُقصى</span>}
+          {p.eliminated && <span className="chip !min-h-0 !py-1 text-xs text-danger">{t('eliminated')}</span>}
           {!p.eliminated && p.bestStreak >= 2 && (
-            <span className="chip !min-h-0 !py-1 text-xs" title="أفضل سلسلة">
+            <span className="chip !min-h-0 !py-1 text-xs" title={t('bestStreak')}>
               🔗 {p.bestStreak}
             </span>
           )}

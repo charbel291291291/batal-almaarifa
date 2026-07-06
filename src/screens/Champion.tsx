@@ -2,13 +2,15 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { masteredDifficulty, rankPlayers } from '../lib/scoreEngine';
-import { DIFFICULTY_LABELS } from '../types';
+import { difficultyLabel } from '../lib/i18n';
+import { useI18n } from '../lib/useI18n';
 import { Confetti } from '../components/Confetti';
 import { Scoreboard } from '../components/Scoreboard';
 import { sounds } from '../lib/soundEngine';
 
 /** شاشة البطل — احتفال، إحصاءات، وبطاقة مشاركة */
 export function Champion() {
+  const { locale, t } = useI18n();
   const { game, goHome, goSetup } = useGameStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -47,7 +49,7 @@ export function Champion() {
 
     ctx.fillStyle = '#f5ce6e';
     ctx.font = '900 90px Cairo, sans-serif';
-    ctx.fillText('🏆 بطل المعرفة 🏆', W / 2, 180);
+    ctx.fillText(t('championCardTitle'), W / 2, 180);
 
     ctx.font = '400 140px serif';
     ctx.fillText(winner.avatar, W / 2, 380);
@@ -58,20 +60,20 @@ export function Champion() {
 
     ctx.fillStyle = '#e8b84b';
     ctx.font = '900 120px Cairo, sans-serif';
-    ctx.fillText(`${winner.score} نقطة`, W / 2, 680);
+    ctx.fillText(t('pointUnit', { count: winner.score }), W / 2, 680);
 
     ctx.fillStyle = '#9aa6d0';
     ctx.font = '700 42px Cairo, sans-serif';
-    const fastest = winner.fastestAnswerMs !== null ? `${(winner.fastestAnswerMs / 1000).toFixed(1)} ث` : '—';
+    const fastest = winner.fastestAnswerMs !== null ? `${(winner.fastestAnswerMs / 1000).toFixed(1)} ${t('secondsShort')}` : '—';
     ctx.fillText(
-      `✅ ${winner.correctCount} صحيحة   ⚡ أسرع إجابة ${fastest}   🔗 سلسلة ${winner.bestStreak}${mastered ? `   🎓 ${DIFFICULTY_LABELS[mastered]}` : ''}`,
+      `✅ ${winner.correctCount}   ⚡ ${t('fastestAnswer')} ${fastest}   🔗 ${winner.bestStreak}${mastered ? `   🎓 ${difficultyLabel(mastered, locale)}` : ''}`,
       W / 2,
       790,
     );
 
     ctx.fillStyle = '#4e9bff';
     ctx.font = '700 40px Cairo, sans-serif';
-    ctx.fillText('مسابقة بطل المعرفة', W / 2, 900);
+    ctx.fillText(t('championCardBrand'), W / 2, 900);
 
     const link = document.createElement('a');
     link.download = `batal-almaarifa-${winner.name}.png`;
@@ -80,7 +82,7 @@ export function Champion() {
   };
 
   const fastestSec =
-    winner.fastestAnswerMs !== null ? `${(winner.fastestAnswerMs / 1000).toFixed(1)} ث` : '—';
+    winner.fastestAnswerMs !== null ? `${(winner.fastestAnswerMs / 1000).toFixed(1)} ${t('secondsShort')}` : '—';
 
   return (
     <main className="relative z-10 mx-auto flex min-h-svh w-full max-w-xl flex-col items-center gap-6 px-5 py-10 text-center">
@@ -95,22 +97,22 @@ export function Champion() {
       >
         <span className="text-7xl" aria-hidden>👑</span>
         <h1 className="bg-gradient-to-b from-gold-2 to-gold bg-clip-text text-4xl font-black text-transparent sm:text-5xl">
-          لدينا بطل جديد!
+          {t('championTitle')}
         </h1>
         <div className="glass animate-glow flex flex-col items-center gap-2 border-gold/60 px-10 py-6">
           <span className="text-6xl" aria-hidden>{winner.avatar}</span>
           <h2 className="text-3xl font-black">{winner.name}</h2>
-          <p className="text-xl font-bold text-gold-2">بطل المعرفة 🏆</p>
+          <p className="text-xl font-bold text-gold-2">{t('championName')}</p>
         </div>
       </motion.div>
 
-      <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-5" aria-label="إحصاءات البطل">
+      <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-5" aria-label={t('championStats')}>
         {[
-          { label: 'النقاط', value: String(winner.score), icon: '⭐' },
-          { label: 'إجابات صحيحة', value: String(winner.correctCount), icon: '✅' },
-          { label: 'أسرع إجابة', value: fastestSec, icon: '⚡' },
-          { label: 'أفضل سلسلة', value: String(winner.bestStreak), icon: '🔗' },
-          { label: 'المستوى المتقن', value: mastered ? DIFFICULTY_LABELS[mastered] : '—', icon: '🎓' },
+          { label: t('points'), value: String(winner.score), icon: '⭐' },
+          { label: t('correctAnswers'), value: String(winner.correctCount), icon: '✅' },
+          { label: t('fastestAnswer'), value: fastestSec, icon: '⚡' },
+          { label: t('bestStreak'), value: String(winner.bestStreak), icon: '🔗' },
+          { label: t('masteredLevel'), value: mastered ? difficultyLabel(mastered, locale) : '—', icon: '🎓' },
         ].map((s) => (
           <div key={s.label} className="glass flex flex-col items-center gap-1 p-4">
             <span className="text-2xl" aria-hidden>{s.icon}</span>
@@ -121,19 +123,19 @@ export function Champion() {
       </div>
 
       <div className="w-full">
-        <h3 className="mb-3 text-xl font-bold text-ink-dim">الترتيب النهائي</h3>
+        <h3 className="mb-3 text-xl font-bold text-ink-dim">{t('finalRanking')}</h3>
         <Scoreboard players={game.players} />
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-3">
         <button type="button" className="btn-primary text-lg" onClick={downloadCard}>
-          📸 حمّل بطاقة البطل
+          {t('downloadCard')}
         </button>
         <button type="button" className="btn-ghost text-lg" onClick={goSetup}>
-          🔁 العب من جديد
+          {t('playAgain')}
         </button>
         <button type="button" className="btn-ghost text-lg" onClick={goHome}>
-          🏠 الشاشة الرئيسية
+          {t('home')}
         </button>
       </div>
     </main>

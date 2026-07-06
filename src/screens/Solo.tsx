@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import type { CategoryId, Question } from '../types';
 import { CATEGORY_LABELS } from '../types';
+import { categoryLabel } from '../lib/i18n';
+import { useI18n } from '../lib/useI18n';
 import { QUESTION_BANK } from '../data/questions';
 import { pickQuestions } from '../lib/questionPicker';
 import { isAnswerCorrect } from '../lib/answerNormalizer';
@@ -12,6 +14,7 @@ import { AnswerPanel } from '../components/AnswerPanel';
 import { TimerRing } from '../components/TimerRing';
 import { MuteButton } from '../components/MuteButton';
 import { sounds } from '../lib/soundEngine';
+import { localizeQuestionBank } from '../lib/localizeQuestions';
 
 const SPRINT_SECONDS = 60;
 const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS) as CategoryId[];
@@ -21,6 +24,7 @@ type Stage = 'pick' | 'play' | 'done';
 /** التدريب الفردي — سباق الـ 60 ثانية: أجب على أكبر عدد ممكن */
 export function Solo() {
   const goHome = useGameStore((s) => s.goHome);
+  const { locale, t } = useI18n();
 
   const [stage, setStage] = useState<Stage>('pick');
   const [category, setCategory] = useState<CategoryId | 'all'>('all');
@@ -37,7 +41,7 @@ export function Solo() {
   const finishedRef = useRef(false);
 
   const start = () => {
-    const picked = pickQuestions(QUESTION_BANK, {
+    const picked = pickQuestions(localizeQuestionBank(QUESTION_BANK, locale), {
       categories: category === 'all' ? ALL_CATEGORIES : [category],
       difficulties: ['easy', 'medium', 'hard', 'expert'],
       count: 40,
@@ -102,9 +106,9 @@ export function Solo() {
     <main className="relative z-10 mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-4 px-4 py-5">
       <header className="flex items-center justify-between">
         <button type="button" className="btn-ghost !min-h-11 !px-3 !py-2 text-sm" onClick={goHome}>
-          → رجوع
+          {t('back')}
         </button>
-        <h1 className="text-xl font-black text-gold-2">⚡ سباق الـ 60 ثانية</h1>
+        <h1 className="text-xl font-black text-gold-2">{t('soloTitle')}</h1>
         <MuteButton />
       </header>
 
@@ -115,22 +119,22 @@ export function Solo() {
           className="flex flex-1 flex-col items-center justify-center gap-6 text-center"
         >
           <p className="max-w-sm text-lg text-ink-dim">
-            اختر فئة وأجب على أكبر عدد من الأسئلة خلال 60 ثانية.
+            {t('soloHelp1')}
             <br />
-            كل إجابة صحيحة = 10 نقاط، والسرعة تزيدها +5.
+            {t('soloHelp2')}
           </p>
           <div className="flex max-w-lg flex-wrap justify-center gap-2">
             <button type="button" className="chip" data-active={category === 'all'} onClick={() => setCategory('all')}>
-              كل الفئات 🎲
+              {t('allCategories')}
             </button>
             {ALL_CATEGORIES.map((c) => (
               <button key={c} type="button" className="chip" data-active={category === c} onClick={() => setCategory(c)}>
-                {CATEGORY_LABELS[c]}
+                {categoryLabel(c, locale)}
               </button>
             ))}
           </div>
           <button type="button" className="btn-primary w-full max-w-xs text-xl" onClick={start}>
-            🏁 انطلق!
+            {t('start')}
           </button>
         </motion.section>
       )}
@@ -139,7 +143,7 @@ export function Solo() {
         <section className="flex flex-1 flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="glass px-4 py-2">
-              <p className="text-xs text-ink-dim">النقاط</p>
+              <p className="text-xs text-ink-dim">{t('points')}</p>
               <p className="text-2xl font-black text-gold-2 tabular-nums">{score}</p>
             </div>
             <TimerRing
@@ -149,7 +153,7 @@ export function Solo() {
               onTimeout={finish}
             />
             <div className="glass px-4 py-2 text-center">
-              <p className="text-xs text-ink-dim">صح / خطأ</p>
+              <p className="text-xs text-ink-dim">{t('correctWrong')}</p>
               <p className="text-lg font-black tabular-nums">
                 <span className="text-emerald">{correct}</span> / <span className="text-danger">{wrong}</span>
               </p>
@@ -171,32 +175,32 @@ export function Solo() {
           className="flex flex-1 flex-col items-center justify-center gap-5 text-center"
         >
           <span className="text-6xl" aria-hidden>⏱️</span>
-          <h2 className="text-3xl font-black">انتهى الوقت!</h2>
+          <h2 className="text-3xl font-black">{t('timeUp')}</h2>
           {isNewBest ? (
-            <p className="chip !py-2 text-base" data-active="true">🎉 رقم قياسي جديد على هذا الجهاز!</p>
+            <p className="chip !py-2 text-base" data-active="true">{t('newRecord')}</p>
           ) : (
-            <p className="text-sm text-ink-dim">أفضل نتيجة على هذا الجهاز: {loadSoloBest()}</p>
+            <p className="text-sm text-ink-dim">{t('deviceBest', { score: loadSoloBest() })}</p>
           )}
           <div className="grid w-full max-w-sm grid-cols-3 gap-3">
             <div className="glass p-4">
               <p className="text-2xl font-black text-gold-2 tabular-nums">{score}</p>
-              <p className="text-xs text-ink-dim">النقاط</p>
+              <p className="text-xs text-ink-dim">{t('points')}</p>
             </div>
             <div className="glass p-4">
               <p className="text-2xl font-black text-emerald tabular-nums">{correct}</p>
-              <p className="text-xs text-ink-dim">صحيحة</p>
+              <p className="text-xs text-ink-dim">{t('correct')}</p>
             </div>
             <div className="glass p-4">
               <p className="text-2xl font-black text-electric tabular-nums">{accuracy}%</p>
-              <p className="text-xs text-ink-dim">الدقة</p>
+              <p className="text-xs text-ink-dim">{t('accuracy')}</p>
             </div>
           </div>
           <div className="flex w-full max-w-xs flex-col gap-3">
             <button type="button" className="btn-primary text-lg" onClick={() => setStage('pick')}>
-              🔁 جولة جديدة
+              {t('newRound')}
             </button>
             <button type="button" className="btn-ghost text-lg" onClick={goHome}>
-              🏠 الرئيسية
+              {t('home')}
             </button>
           </div>
         </motion.section>

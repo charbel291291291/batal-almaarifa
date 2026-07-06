@@ -2,6 +2,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { Question } from '../types';
 import { buildOptions, pickQuestions } from './questionPicker';
 import { supabase } from './supabase';
+import { translate, type Locale } from './i18n';
 
 export interface OnlinePlayer {
   id: string;
@@ -141,14 +142,14 @@ export async function unsubscribeFromOnlineRoom(channel: RealtimeChannel): Promi
   if (supabase) await supabase.removeChannel(channel);
 }
 
-export function onlineErrorMessage(error: unknown): string {
+export function onlineErrorMessage(error: unknown, locale: Locale = 'ar'): string {
   const message = error instanceof Error ? error.message : String(error);
-  if (message.includes('room_not_found')) return 'الغرفة غير موجودة أو انتهت صلاحيتها.';
-  if (message.includes('room_full')) return 'الغرفة ممتلئة.';
-  if (message.includes('need_two_players')) return 'تحتاج الغرفة إلى لاعبين على الأقل.';
-  if (message.includes('already_answered')) return 'لقد أجبت عن هذا السؤال.';
+  if (message.includes('room_not_found')) return translate(locale, 'roomMissing');
+  if (message.includes('room_full')) return translate(locale, 'roomFull');
+  if (message.includes('need_two_players')) return translate(locale, 'needTwoPlayers');
+  if (message.includes('already_answered')) return translate(locale, 'alreadyAnswered');
   if (message.includes('Anonymous sign-ins are disabled'))
-    return 'يجب تفعيل Anonymous Sign-Ins في إعدادات Supabase Auth.';
-  if (message.includes('supabase_not_configured')) return 'الاتصال بالأونلاين غير مضبوط بعد.';
-  return 'تعذر الاتصال بالغرفة. حاول مجدداً.';
+    return translate(locale, 'anonymousDisabled');
+  if (message.includes('supabase_not_configured')) return translate(locale, 'onlineNotConfigured');
+  return translate(locale, 'roomConnectionFailed');
 }

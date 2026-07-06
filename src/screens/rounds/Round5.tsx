@@ -1,17 +1,19 @@
 import { motion } from 'framer-motion';
 import type { Phase } from '../../types';
-import { CATEGORY_LABELS } from '../../types';
 import { useGameStore } from '../../store/gameStore';
 import { QuestionCard } from '../../components/QuestionCard';
 import { AnswerPanel } from '../../components/AnswerPanel';
 import { TimerRing } from '../../components/TimerRing';
 import { FeedbackCard } from './FeedbackCard';
 import { SCORING } from '../../lib/scoreEngine';
+import { categoryLabel } from '../../lib/i18n';
+import { useI18n } from '../../lib/useI18n';
 
 type R5Phase = Extract<Phase, { kind: 'r5' }>;
 
 /** الجولة 5: النهائي — اختيار الفئات، سباق إلى 100، وخطف الفرص */
 export function Round5({ phase }: { phase: R5Phase }) {
+  const { locale, t } = useI18n();
   const { game, dispatch } = useGameStore();
   if (!game) return null;
 
@@ -31,18 +33,18 @@ export function Round5({ phase }: { phase: R5Phase }) {
         animate={{ opacity: 1, y: 0 }}
         className="mx-auto flex w-full max-w-lg flex-col items-center gap-5 text-center"
       >
-        <span className="chip" data-active="true">اختيار الفئات — خطوة {phase.pickTurn + 1} من 4</span>
+        <span className="chip" data-active="true">{t('categoryPick', { current: phase.pickTurn + 1 })}</span>
         <div className="text-5xl" aria-hidden>{picker.avatar}</div>
         <h2 className="text-2xl font-black">
-          يا <span className="text-gold-2">{picker.name}</span>...
-          {forSelf ? ' اختر فئة قوتك 💪' : ' اختر فئة صعبة لخصمك 😈'}
+          <span className="text-gold-2">{picker.name}</span>…
+          {forSelf ? t('chooseStrength') : t('chooseTrap')}
         </h2>
         <p className="text-sm text-ink-dim">
           {forSelf
-            ? 'أسئلتك ستأتي من هذه الفئة — اختر ما تتقنه!'
-            : 'خصمك سيُسأل من هذه الفئة أيضاً — اختر ما يصعب عليه!'}
+            ? t('strengthHelp')
+            : t('trapHelp')}
         </p>
-        <div className="flex w-full flex-col gap-3" role="group" aria-label="الفئات المعروضة">
+        <div className="flex w-full flex-col gap-3" role="group" aria-label={t('offeredCategories')}>
           {phase.offered.map((c) => (
             <button
               key={c}
@@ -50,7 +52,7 @@ export function Round5({ phase }: { phase: R5Phase }) {
               className="option-btn"
               onClick={() => dispatch({ type: 'PICK_CATEGORY', category: c })}
             >
-              {CATEGORY_LABELS[c]}
+              {categoryLabel(c, locale)}
             </button>
           ))}
         </div>
@@ -66,10 +68,10 @@ export function Round5({ phase }: { phase: R5Phase }) {
         className="mx-auto flex w-full max-w-lg flex-col items-center gap-5 text-center"
       >
         <span className="text-6xl" aria-hidden>👑</span>
-        <h2 className="text-2xl font-black">{phase.doneSummary}</h2>
+        <h2 className="text-2xl font-black">{locale === 'ar' ? phase.doneSummary : t('finalComplete')}</h2>
         <RaceBars pa={pa} pb={pb} finalScores={phase.finalScores} />
         <button type="button" className="btn-primary w-full max-w-xs text-xl" onClick={() => dispatch({ type: 'ADVANCE' })}>
-          🏆 إعلان البطل
+          {t('announceChampion')}
         </button>
       </motion.section>
     );
@@ -99,12 +101,12 @@ export function Round5({ phase }: { phase: R5Phase }) {
         <div className={`glass flex items-center gap-3 px-4 py-2 ${isSteal ? 'border-gold/60' : ''}`}>
           <span className="text-3xl" aria-hidden>{answerer.avatar}</span>
           <div>
-            <p className="text-xs text-ink-dim">{isSteal ? 'الفرصة انتقلت! 🔄' : 'سؤال نهائي لـ'}</p>
+            <p className="text-xs text-ink-dim">{isSteal ? t('chanceMoved') : t('finalQuestionFor')}</p>
             <p className="text-lg font-black text-gold-2">{answerer.name}</p>
           </div>
         </div>
         <span className="chip !min-h-0 !py-1">
-          {isSteal ? `خطف بـ ${SCORING.r5.steal}` : `+${SCORING.r5.correct} نهائية`}
+          {isSteal ? t('stealPoints', { points: SCORING.r5.steal }) : t('finalPoints', { points: SCORING.r5.correct })}
         </span>
         <TimerRing
           duration={
@@ -128,7 +130,7 @@ export function Round5({ phase }: { phase: R5Phase }) {
       </QuestionCard>
 
       <p className="text-center text-sm text-ink-dim">
-        الخطأ يفتح فرصة الخطف للخصم • أول من يبلغ {SCORING.r5.target} يتوّج بطلاً
+        {t('finalRule', { target: SCORING.r5.target })}
       </p>
     </section>
   );
@@ -143,9 +145,10 @@ function RaceBars({
   pb: { id: string; name: string; avatar: string };
   finalScores: Record<string, number>;
 }) {
+  const { t } = useI18n();
   const target = SCORING.r5.target;
   return (
-    <div className="glass flex w-full flex-col gap-2 p-4" aria-label="سباق النهائي">
+    <div className="glass flex w-full flex-col gap-2 p-4" aria-label={t('finalRace')}>
       {[pa, pb].map((p) => {
         const value = finalScores[p.id] ?? 0;
         const pct = Math.min(100, (value / target) * 100);
@@ -154,7 +157,7 @@ function RaceBars({
             <span className="w-8 text-center text-xl" aria-hidden>{p.avatar}</span>
             <span className="w-20 truncate text-sm font-bold">{p.name}</span>
             <div className="h-3 flex-1 overflow-hidden rounded-full bg-white/10" role="progressbar"
-              aria-valuenow={value} aria-valuemin={0} aria-valuemax={target} aria-label={`نقاط ${p.name} النهائية`}>
+              aria-valuenow={value} aria-valuemin={0} aria-valuemax={target} aria-label={t('finalScoreFor', { name: p.name })}>
               <div
                 className="h-full rounded-full bg-gradient-to-l from-gold-2 to-gold transition-all duration-500"
                 style={{ width: `${pct}%` }}

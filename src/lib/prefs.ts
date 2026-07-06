@@ -3,6 +3,7 @@
  */
 import type { GameSettings, GameState } from '../types';
 import { rankPlayers } from './scoreEngine';
+import type { Locale } from './i18n';
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -27,12 +28,19 @@ export interface A11yPrefs {
   largeFont: boolean;
   highContrast: boolean;
   reducedMotion: boolean;
+  locale: Locale;
 }
 
 const PREFS_KEY = 'bm_a11y';
 
 export function loadPrefs(): A11yPrefs {
-  return read(PREFS_KEY, { largeFont: false, highContrast: false, reducedMotion: false });
+  const stored = read<Partial<A11yPrefs>>(PREFS_KEY, {});
+  return {
+    largeFont: stored.largeFont ?? false,
+    highContrast: stored.highContrast ?? false,
+    reducedMotion: stored.reducedMotion ?? false,
+    locale: stored.locale === 'en' || stored.locale === 'fr' ? stored.locale : 'ar',
+  };
 }
 
 export function savePrefs(prefs: A11yPrefs): void {
@@ -46,6 +54,24 @@ export function applyPrefs(prefs: A11yPrefs): void {
   html.classList.toggle('font-large', prefs.largeFont);
   html.classList.toggle('high-contrast', prefs.highContrast);
   html.classList.toggle('reduce-motion', prefs.reducedMotion);
+  html.lang = prefs.locale;
+  html.dir = prefs.locale === 'ar' ? 'rtl' : 'ltr';
+  const metadata = {
+    ar: {
+      title: 'بطل المعرفة — مسابقة المعلومات العربية',
+      description: 'مسابقة معلومات سريعة: جولات، جرس، سلاسل ذهبية، وتحديات أونلاين.',
+    },
+    en: {
+      title: 'Knowledge Champion — Trivia Challenge',
+      description: 'A fast-paced trivia game with rounds, buzzers, golden chains, and online challenges.',
+    },
+    fr: {
+      title: 'Champion du Savoir — Jeu de connaissances',
+      description: 'Un jeu de connaissances rythmé avec manches, buzzers, chaînes dorées et défis en ligne.',
+    },
+  }[prefs.locale];
+  document.title = metadata.title;
+  document.querySelector('meta[name="description"]')?.setAttribute('content', metadata.description);
 }
 
 /* ---------- آخر إعدادات لعبة ---------- */
