@@ -35,7 +35,6 @@ function settings(playerCount: number): GameSettings {
     timerSpeed: 1,
     answerMode: 'options',
     tone: 'fusha',
-    includeCustom: false,
     soundOn: false,
   };
 }
@@ -205,7 +204,7 @@ describe('تثبيت النقاط في السلسلة الذهبية', () => {
     const bank = makeBank(80);
     let g = createGame(settings(2));
 
-    g = playUntil(g, bank, (s) => s.phase.kind === 'r3' && s.phase.stage === 'question', 'p_none');
+    g = playUntil(g, bank, (s) => s.phase.kind === 'r3' && s.phase.stage === 'question', 'p1');
     if (g.phase.kind !== 'r3') throw new Error('لم نصل للسلسلة');
     const playerId = g.phase.playerOrder[0];
     const scoreBefore = g.players.find((p) => p.id === playerId)!.score;
@@ -221,5 +220,17 @@ describe('تثبيت النقاط في السلسلة الذهبية', () => {
     g = reduce(g, { type: 'ANSWER', value: 'خطأ متعمد', elapsedMs: 1000 }, bank);
     const scoreAfter = g.players.find((p) => p.id === playerId)!.score;
     expect(scoreAfter).toBe(scoreBefore + 10); // المثبّت نجا من كسر السلسلة
+  });
+});
+
+describe('سلامة مدخلات الجرس', () => {
+  it('يرفض لاعباً مجهولاً في جولة الجرس', () => {
+    const bank = makeBank(80);
+    let game = createGame(settings(2));
+    game = reduce(game, { type: 'ADVANCE' }, bank);
+    game = playUntil(game, bank, (state) => state.phase.kind === 'r2', 'p1');
+
+    const after = reduce(game, { type: 'BUZZ', playerId: 'not-a-player' }, bank);
+    expect(after).toBe(game);
   });
 });

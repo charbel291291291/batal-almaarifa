@@ -24,7 +24,6 @@ export const TEST_SETTINGS: GameSettings = {
   timerSpeed: 1,
   answerMode: 'auto',
   tone: 'fusha',
-  includeCustom: false,
   soundOn: false,
 };
 

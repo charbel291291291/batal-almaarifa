@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { clearDeviceStats, loadDeviceStats, loadSoloBest } from '../lib/prefs';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { useI18n } from '../lib/useI18n';
 
 /** إحصاءات الجهاز — الألعاب المنتهية، الأبطال، أفضل نتيجة فردية */
 export function Stats() {
+  const { t } = useI18n();
   const goHome = useGameStore((s) => s.goHome);
   const [stats, setStats] = useState(loadDeviceStats());
   const [confirmClear, setConfirmClear] = useState(false);
@@ -18,9 +20,9 @@ export function Stats() {
     <main className="relative z-10 mx-auto w-full max-w-xl px-5 py-8">
       {confirmClear && (
         <ConfirmModal
-          title="مسح إحصاءات الجهاز؟"
-          message="سيُحذف سجل الألعاب والأبطال من هذا الجهاز."
-          confirmLabel="نعم، امسح"
+          title={t('statsClearTitle')}
+          message={t('statsClearMessage')}
+          confirmLabel={t('confirmClear')}
           onConfirm={() => {
             clearDeviceStats();
             setStats(loadDeviceStats());
@@ -32,18 +34,18 @@ export function Stats() {
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-black text-gold-2">📊 الإحصاءات</h1>
+          <h1 className="text-3xl font-black text-gold-2">{t('statistics')}</h1>
           <button type="button" className="btn-ghost !min-h-11 !py-2" onClick={goHome}>
-            → رجوع
+            {t('back')}
           </button>
         </div>
 
         <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'ألعاب مكتملة', value: String(stats.gamesPlayed), icon: '🎮' },
-            { label: 'إجابات صحيحة', value: String(stats.totalCorrect), icon: '✅' },
-            { label: 'الدقة', value: `${accuracy}%`, icon: '🎯' },
-            { label: 'أفضل سباق 60ث', value: String(soloBest), icon: '⚡' },
+            { label: t('gamesCompleted'), value: String(stats.gamesPlayed), icon: '🎮' },
+            { label: t('correctAnswers'), value: String(stats.totalCorrect), icon: '✅' },
+            { label: t('accuracy'), value: `${accuracy}%`, icon: '🎯' },
+            { label: t('bestSprint'), value: String(soloBest), icon: '⚡' },
           ].map((s) => (
             <div key={s.label} className="glass flex flex-col items-center gap-1 p-4">
               <span className="text-2xl" aria-hidden>{s.icon}</span>
@@ -54,9 +56,9 @@ export function Stats() {
         </div>
 
         <section className="glass p-5">
-          <h2 className="mb-4 text-xl font-bold">🏆 سجل الأبطال</h2>
+          <h2 className="mb-4 text-xl font-bold">{t('championsHistory')}</h2>
           {stats.champions.length === 0 ? (
-            <p className="text-center text-ink-dim">لا أبطال بعد — أكملوا أول مسابقة!</p>
+            <p className="text-center text-ink-dim">{t('noChampions')}</p>
           ) : (
             <ol className="flex flex-col gap-2">
               {stats.champions.map((c, i) => (
@@ -71,7 +73,7 @@ export function Stats() {
           )}
           {stats.gamesPlayed > 0 && (
             <button type="button" className="chip mt-4 text-danger" onClick={() => setConfirmClear(true)}>
-              🗑️ مسح الإحصاءات
+              {t('clearStats')}
             </button>
           )}
         </section>

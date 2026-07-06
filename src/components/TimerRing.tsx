@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { sounds } from '../lib/soundEngine';
+import { useI18n } from '../lib/useI18n';
 
 interface Props {
   /** المدة بالثواني */
@@ -13,6 +14,7 @@ interface Props {
 
 /** حلقة مؤقت متحركة — تنبض وتحمرّ في الثواني الأخيرة */
 export function TimerRing({ duration, resetKey, running, onTimeout, size = 84 }: Props) {
+  const { t } = useI18n();
   const [remaining, setRemaining] = useState(duration);
   const timeoutRef = useRef(onTimeout);
   timeoutRef.current = onTimeout;
@@ -55,7 +57,7 @@ export function TimerRing({ duration, resetKey, running, onTimeout, size = 84 }:
   return (
     <div
       role="timer"
-      aria-label={`الوقت المتبقي ${Math.ceil(remaining)} ثانية`}
+      aria-label={t('timeRemaining', { count: Math.ceil(remaining) })}
       className="relative shrink-0"
       style={{ width: size, height: size }}
     >

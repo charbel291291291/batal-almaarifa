@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { MuteButton } from '../components/MuteButton';
+import type { Locale } from '../lib/i18n';
+import { useI18n } from '../lib/useI18n';
 
 function Logo() {
   return (
@@ -28,10 +30,11 @@ function Logo() {
 /** لوحة تفضيلات الوصولية — خط كبير، تباين عالٍ، تقليل الحركة */
 function A11yPanel() {
   const { prefs, setPrefs } = useGameStore();
+  const { t } = useI18n();
   const items = [
-    { key: 'largeFont' as const, label: 'خط كبير', icon: '🔠' },
-    { key: 'highContrast' as const, label: 'تباين عالٍ', icon: '🌓' },
-    { key: 'reducedMotion' as const, label: 'تقليل الحركة', icon: '🐢' },
+    { key: 'largeFont' as const, label: t('largeFont'), icon: '🔠' },
+    { key: 'highContrast' as const, label: t('highContrast'), icon: '🌓' },
+    { key: 'reducedMotion' as const, label: t('reducedMotion'), icon: '🐢' },
   ];
   return (
     <motion.div
@@ -39,7 +42,7 @@ function A11yPanel() {
       animate={{ opacity: 1, y: 0 }}
       className="glass flex flex-col gap-2 p-4"
       role="group"
-      aria-label="إعدادات الوصولية"
+      aria-label={t('accessibility')}
     >
       {items.map((item) => (
         <label key={item.key} className="flex cursor-pointer items-center gap-3 text-sm font-bold">
@@ -58,8 +61,15 @@ function A11yPanel() {
 }
 
 export function Home() {
-  const { goSetup, goSolo, goEditor, goStats } = useGameStore();
+  const { goSetup, goSolo, goOnline, goStats } = useGameStore();
   const [showA11y, setShowA11y] = useState(false);
+  const { prefs, setPrefs } = useGameStore();
+  const { t } = useI18n();
+  const locales: { id: Locale; label: string }[] = [
+    { id: 'ar', label: 'العربية' },
+    { id: 'en', label: 'English' },
+    { id: 'fr', label: 'Français' },
+  ];
 
   return (
     <main className="relative z-10 mx-auto flex min-h-svh w-full max-w-xl flex-col items-center justify-center gap-8 px-5 py-10 text-center">
@@ -68,9 +78,9 @@ export function Home() {
         <button
           type="button"
           className="btn-ghost !min-h-11 !px-3 !py-2 text-xl"
-          aria-label="إعدادات الوصولية"
+          aria-label={t('accessibility')}
           aria-expanded={showA11y}
-          title="إعدادات الوصولية"
+          title={t('accessibility')}
           onClick={() => setShowA11y((v) => !v)}
         >
           ⚙️
@@ -85,41 +95,53 @@ export function Home() {
       >
         <Logo />
         <h1 className="bg-gradient-to-b from-gold-2 to-gold bg-clip-text text-5xl font-black text-transparent sm:text-6xl">
-          بطل المعرفة
+          {t('appName')}
         </h1>
         <p className="max-w-sm text-lg text-ink-dim">
-          مسابقة معلومات عربية سريعة — 5 جولات، جرس، سلاسل ذهبية، مواجهات إقصاء... وبطل واحد فقط 🏆
+          {t('tagline')}
         </p>
       </motion.div>
 
       {showA11y && <A11yPanel />}
+
+      <div className="flex flex-wrap justify-center gap-2" role="group" aria-label={t('language')}>
+        {locales.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className="chip"
+            data-active={prefs.locale === item.id}
+            aria-pressed={prefs.locale === item.id}
+            onClick={() => setPrefs({ ...prefs, locale: item.id })}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
 
       <motion.nav
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.15 }}
         className="flex w-full max-w-sm flex-col gap-3"
-        aria-label="القائمة الرئيسية"
+        aria-label={t('appName')}
       >
         <button type="button" className="btn-primary text-xl" onClick={goSetup}>
-          🎮 حفلة محلية (2–6 لاعبين)
+          {t('localParty')}
         </button>
         <button type="button" className="btn-ghost text-lg" onClick={goSolo}>
-          ⚡ تدريب فردي — سباق الـ 60 ثانية
+          {t('soloSprint')}
         </button>
-        <button type="button" className="btn-ghost text-lg" onClick={goEditor}>
-          ✍️ صانع الأسئلة
+        <button type="button" className="btn-ghost text-lg" onClick={goOnline}>
+          {t('onlineChallenge')}
         </button>
         <button type="button" className="btn-ghost text-lg" onClick={goStats}>
-          📊 الإحصاءات
-        </button>
-        <button type="button" className="btn-ghost text-lg opacity-60" disabled title="قريباً">
-          🌐 غرف أونلاين — قريباً
+          {t('statistics')}
         </button>
       </motion.nav>
 
       <p className="text-sm text-ink-dim/70">
-        الانطلاقة • من يسبق؟ • السلسلة الذهبية • المواجهة • النهائي
+        {t('roundsLine')}
       </p>
     </main>
   );

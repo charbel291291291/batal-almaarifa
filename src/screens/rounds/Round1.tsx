@@ -4,11 +4,13 @@ import { QuestionCard } from '../../components/QuestionCard';
 import { AnswerPanel } from '../../components/AnswerPanel';
 import { TimerRing } from '../../components/TimerRing';
 import { FeedbackCard } from './FeedbackCard';
+import { useI18n } from '../../lib/useI18n';
 
 type R1Phase = Extract<Phase, { kind: 'r1' }>;
 
 /** الجولة 1: الانطلاقة — كل لاعب يجيب بالدور، السرعة تكافأ */
 export function Round1({ phase }: { phase: R1Phase }) {
+  const { t } = useI18n();
   const { game, dispatch } = useGameStore();
   if (!game) return null;
 
@@ -26,12 +28,12 @@ export function Round1({ phase }: { phase: R1Phase }) {
         <div className="glass flex items-center gap-3 px-4 py-2">
           <span className="text-3xl" aria-hidden>{player.avatar}</span>
           <div>
-            <p className="text-xs text-ink-dim">السؤال التالي لـ</p>
+            <p className="text-xs text-ink-dim">{t('nextFor')}</p>
             <p className="text-lg font-black text-gold-2">{player.name}</p>
           </div>
         </div>
         <span className="chip !min-h-0 !py-1">
-          سؤال {phase.index + 1} / {phase.queue.length}
+          {t('questionNumber', { current: phase.index + 1, total: phase.queue.length })}
         </span>
         <TimerRing
           duration={Math.round(item.question.time_limit_seconds * game.settings.timerSpeed)}
@@ -50,7 +52,7 @@ export function Round1({ phase }: { phase: R1Phase }) {
         />
       </QuestionCard>
 
-      <p className="text-center text-sm text-ink-dim">⚡ أجب خلال 3 ثوانٍ واكسب +5 نقاط سرعة</p>
+      <p className="text-center text-sm text-ink-dim">{t('speedBonusHint')}</p>
     </section>
   );
 }

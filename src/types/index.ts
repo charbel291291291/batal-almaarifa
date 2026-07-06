@@ -81,7 +81,7 @@ export interface Question {
   media_url?: string;
   time_limit_seconds: number;
   points: number;
-  language: 'ar';
+  language: 'ar' | 'en' | 'fr';
   tags: string[];
   created_by?: string;
   review_status?: 'approved' | 'pending' | 'rejected';
@@ -209,8 +209,6 @@ export interface GameSettings {
   /** auto = حسب نوع السؤال، options = خيارات دائماً */
   answerMode: 'auto' | 'options';
   tone: HostTone;
-  /** تضمين أسئلة اللاعب المخصصة من صانع الأسئلة */
-  includeCustom: boolean;
   soundOn: boolean;
 }
 
@@ -309,7 +307,7 @@ export type GameAction =
   | { type: 'BANK' }
   | { type: 'PICK_CATEGORY'; category: CategoryId };
 
-/* ---------- أنواع الأونلاين والحزم (v2 — تُستخدم جزئياً في صانع الأسئلة) ---------- */
+/* ---------- أنواع الأونلاين والحزم (v2 — للوحة الإدارة المستقبلية) ---------- */
 
 export interface QuestionPack {
   id: string;

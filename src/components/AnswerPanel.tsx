@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import type { Question } from '../types';
 import { buildOptions } from '../lib/questionPicker';
+import { useI18n } from '../lib/useI18n';
 
 interface Props {
   question: Question;
@@ -15,6 +16,7 @@ interface Props {
  * وحقل كتابة للإجابات المباشرة وأسئلة الإكمال.
  */
 export function AnswerPanel({ question, disabled = false, forceOptions = false, onSubmit }: Props) {
+  const { t, dir } = useI18n();
   const mountedAt = useRef(Date.now());
   const [typed, setTyped] = useState('');
   const [picked, setPicked] = useState<string | null>(null);
@@ -39,7 +41,7 @@ export function AnswerPanel({ question, disabled = false, forceOptions = false, 
       <div
         className={`mt-5 grid gap-3 ${question.type === 'boolean' ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'}`}
         role="group"
-        aria-label="خيارات الإجابة"
+        aria-label={t('answerOptions')}
       >
         {options.map((opt) => (
           <button
@@ -50,7 +52,11 @@ export function AnswerPanel({ question, disabled = false, forceOptions = false, 
             data-state={picked === opt ? (opt === question.answer ? 'correct' : 'wrong') : undefined}
             onClick={() => submit(opt)}
           >
-            {opt}
+            {question.type === 'boolean'
+              ? ['صح', 'True', 'Vrai'].includes(opt)
+                ? t('booleanTrue')
+                : t('booleanFalse')
+              : opt}
           </button>
         ))}
       </div>
@@ -67,17 +73,17 @@ export function AnswerPanel({ question, disabled = false, forceOptions = false, 
     >
       <input
         className="text-input flex-1"
-        dir="rtl"
+        dir={dir}
         autoFocus
         value={typed}
         disabled={disabled || picked !== null}
         onChange={(e) => setTyped(e.target.value)}
-        placeholder="اكتب إجابتك هنا..."
-        aria-label="حقل الإجابة"
+        placeholder={t('answerPlaceholder')}
+        aria-label={t('answerField')}
         autoComplete="off"
       />
       <button type="submit" className="btn-primary" disabled={disabled || picked !== null || !typed.trim()}>
-        أجب ✋
+        {t('answer')}
       </button>
     </form>
   );

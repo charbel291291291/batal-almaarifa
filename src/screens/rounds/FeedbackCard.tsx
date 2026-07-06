@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import type { AnswerResult, PlayerState } from '../../types';
 import { sounds } from '../../lib/soundEngine';
 import { useGameStore } from '../../store/gameStore';
+import { useI18n } from '../../lib/useI18n';
 
 interface Props {
   result: AnswerResult;
@@ -13,8 +14,9 @@ interface Props {
 }
 
 /** بطاقة نتيجة الإجابة — تظهر بعد كل سؤال ثم تتقدم تلقائياً */
-export function FeedbackCard({ result, players, autoAdvanceMs = 2600, advanceLabel = 'متابعة ←' }: Props) {
+export function FeedbackCard({ result, players, autoAdvanceMs = 2600, advanceLabel }: Props) {
   const dispatch = useGameStore((s) => s.dispatch);
+  const { locale, t } = useI18n();
   const player = players.find((p) => p.id === result.playerId);
 
   useEffect(() => {
@@ -42,7 +44,13 @@ export function FeedbackCard({ result, players, autoAdvanceMs = 2600, advanceLab
         {result.correct ? '✅' : result.timedOut ? '⏱️' : '❌'}
       </div>
       <h3 className={`mb-1 text-2xl font-black ${result.correct ? 'text-emerald' : 'text-danger'}`}>
-        {result.hostLine}
+        {locale === 'ar'
+          ? result.hostLine
+          : result.timedOut
+            ? t('feedbackTimeout')
+            : result.correct
+              ? t('feedbackCorrect')
+              : t('feedbackWrong')}
       </h3>
       {player && (
         <p className="mb-2 text-lg text-ink-dim">
@@ -56,12 +64,12 @@ export function FeedbackCard({ result, players, autoAdvanceMs = 2600, advanceLab
       )}
       {!result.correct && (
         <p className="text-xl font-bold">
-          الإجابة الصحيحة: <span className="text-gold-2">{result.correctAnswer}</span>
+          {t('correctAnswerWas')} <span className="text-gold-2">{result.correctAnswer}</span>
         </p>
       )}
       {result.explanation && <p className="mt-2 text-sm text-ink-dim">💡 {result.explanation}</p>}
       <button type="button" className="btn-ghost mt-4 !min-h-11 !py-2" onClick={() => dispatch({ type: 'ADVANCE' })}>
-        {advanceLabel}
+        {advanceLabel ?? t('continue')}
       </button>
     </motion.div>
   );
